@@ -1,0 +1,35 @@
+# Node dependencies
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# Python virtual environment & cache
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
+
+# Environment variables & secrets
+.env
+backend/.env
+frontend/.env
+*.local
+
+# SQLite database (optional, keep seeds in code)
+*.db
+backend/*.db
+!backend/data/*.json
+
+# Logs & temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+.idea/
+.vscode/

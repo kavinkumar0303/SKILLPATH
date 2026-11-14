@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #10231C;
+    background-color: #FAF7E8;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    outline: 2px solid #0B3B2E;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Signature Lime Word Highlight */
+  .highlight-word {
+    display: inline-block;
+    background-color: #C6F36B;
+    color: #10231C;
+    border-radius: 8px;
+    padding: 0 0.18em;
+    font-family: inherit;
+    font-weight: inherit;
+    line-height: 1.15;
+  }
+
+  /* Section Label Pill */
+  .section-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background-color: #FFFFFF;
+    border: 1px solid #E8E4D2;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #10231C;
+  }
+
+  .section-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background-color: #C6F36B;
+  }
+
+  /* Pill Buttons: 40px height, 14px font, weight 600 */
+  .btn-lime {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 999px;
+    background-color: #C6F36B;
+    color: #10231C;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.15s ease-out;
+  }
+  .btn-lime:hover {
+    background-color: #B2E84F;
+    transform: translateY(-1px);
+  }
+
+  .btn-forest {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 999px;
+    background-color: #0B3B2E;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.15s ease-out;
+  }
+  .btn-forest:hover {
+    background-color: #135443;
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background-color: transparent;
+    border: 1px solid #E8E4D2;
+    color: #10231C;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    transition: all 0.15s ease-out;
+  }
+  .btn-outline:hover {
+    background-color: #FFFFFF;
+    border-color: #0B3B2E;
+  }
+
+  /* Modern Card: 20px padding */
+  .card-modern {
+    background-color: #FFFFFF;
+    border: 1px solid #E8E4D2;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(16, 35, 28, 0.06);
+  }
+
+  /* Arch-Top Card */
+  .card-arch {
+    border-radius: 999px 999px 20px 20px;
+    padding: 28px 20px 20px 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(16, 35, 28, 0.06);
+    border: 1px solid rgba(16, 35, 28, 0.08);
+  }
+}
+
+/* Print styles for Skill Passport & Resume */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+  .no-print, header, aside, nav {
+    display: none !important;
+  }
+  body, html {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #resume-print-area {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .card-modern {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+}

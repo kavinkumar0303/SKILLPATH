@@ -1,0 +1,270 @@
+{
+  "skills": {
+    "skill_html": {
+      "demand_index": 72,
+      "salary_band_inr": {"min": 300000, "max": 800000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 15200
+    },
+    "skill_css": {
+      "demand_index": 70,
+      "salary_band_inr": {"min": 300000, "max": 800000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 14800
+    },
+    "skill_javascript": {
+      "demand_index": 95,
+      "salary_band_inr": {"min": 500000, "max": 2200000},
+      "growth_trend": "up",
+      "job_openings_estimate": 42000
+    },
+    "skill_typescript": {
+      "demand_index": 88,
+      "salary_band_inr": {"min": 600000, "max": 2500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 28000
+    },
+    "skill_react": {
+      "demand_index": 92,
+      "salary_band_inr": {"min": 600000, "max": 2800000},
+      "growth_trend": "up",
+      "job_openings_estimate": 35000
+    },
+    "skill_angular": {
+      "demand_index": 68,
+      "salary_band_inr": {"min": 500000, "max": 2200000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 12000
+    },
+    "skill_vue": {
+      "demand_index": 60,
+      "salary_band_inr": {"min": 500000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 8000
+    },
+    "skill_responsive_design": {
+      "demand_index": 65,
+      "salary_band_inr": {"min": 400000, "max": 1200000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 11000
+    },
+    "skill_web_accessibility": {
+      "demand_index": 58,
+      "salary_band_inr": {"min": 400000, "max": 1500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 6500
+    },
+    "skill_python": {
+      "demand_index": 96,
+      "salary_band_inr": {"min": 500000, "max": 2800000},
+      "growth_trend": "up",
+      "job_openings_estimate": 48000
+    },
+    "skill_nodejs": {
+      "demand_index": 85,
+      "salary_band_inr": {"min": 600000, "max": 2500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 25000
+    },
+    "skill_expressjs": {
+      "demand_index": 72,
+      "salary_band_inr": {"min": 500000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 14000
+    },
+    "skill_java": {
+      "demand_index": 80,
+      "salary_band_inr": {"min": 500000, "max": 2500000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 32000
+    },
+    "skill_rest_apis": {
+      "demand_index": 88,
+      "salary_band_inr": {"min": 500000, "max": 2200000},
+      "growth_trend": "up",
+      "job_openings_estimate": 30000
+    },
+    "skill_graphql": {
+      "demand_index": 62,
+      "salary_band_inr": {"min": 700000, "max": 2800000},
+      "growth_trend": "up",
+      "job_openings_estimate": 7500
+    },
+    "skill_authentication": {
+      "demand_index": 75,
+      "salary_band_inr": {"min": 600000, "max": 2200000},
+      "growth_trend": "up",
+      "job_openings_estimate": 15000
+    },
+    "skill_sql": {
+      "demand_index": 90,
+      "salary_band_inr": {"min": 400000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 38000
+    },
+    "skill_postgresql": {
+      "demand_index": 78,
+      "salary_band_inr": {"min": 500000, "max": 2200000},
+      "growth_trend": "up",
+      "job_openings_estimate": 16000
+    },
+    "skill_mongodb": {
+      "demand_index": 72,
+      "salary_band_inr": {"min": 500000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 13000
+    },
+    "skill_redis": {
+      "demand_index": 65,
+      "salary_band_inr": {"min": 600000, "max": 2200000},
+      "growth_trend": "up",
+      "job_openings_estimate": 9000
+    },
+    "skill_database_design": {
+      "demand_index": 70,
+      "salary_band_inr": {"min": 500000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 12000
+    },
+    "skill_git": {
+      "demand_index": 85,
+      "salary_band_inr": {"min": 300000, "max": 1500000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 40000
+    },
+    "skill_docker": {
+      "demand_index": 85,
+      "salary_band_inr": {"min": 700000, "max": 2800000},
+      "growth_trend": "up",
+      "job_openings_estimate": 22000
+    },
+    "skill_kubernetes": {
+      "demand_index": 82,
+      "salary_band_inr": {"min": 800000, "max": 3500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 18000
+    },
+    "skill_cicd": {
+      "demand_index": 80,
+      "salary_band_inr": {"min": 700000, "max": 3000000},
+      "growth_trend": "up",
+      "job_openings_estimate": 16000
+    },
+    "skill_aws": {
+      "demand_index": 90,
+      "salary_band_inr": {"min": 800000, "max": 3500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 28000
+    },
+    "skill_linux": {
+      "demand_index": 78,
+      "salary_band_inr": {"min": 400000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 20000
+    },
+    "skill_data_analysis": {
+      "demand_index": 88,
+      "salary_band_inr": {"min": 500000, "max": 2200000},
+      "growth_trend": "up",
+      "job_openings_estimate": 26000
+    },
+    "skill_statistics": {
+      "demand_index": 75,
+      "salary_band_inr": {"min": 500000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 14000
+    },
+    "skill_pandas": {
+      "demand_index": 82,
+      "salary_band_inr": {"min": 500000, "max": 2200000},
+      "growth_trend": "up",
+      "job_openings_estimate": 20000
+    },
+    "skill_data_visualization": {
+      "demand_index": 76,
+      "salary_band_inr": {"min": 500000, "max": 2000000},
+      "growth_trend": "up",
+      "job_openings_estimate": 14000
+    },
+    "skill_machine_learning": {
+      "demand_index": 92,
+      "salary_band_inr": {"min": 800000, "max": 3500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 24000
+    },
+    "skill_deep_learning": {
+      "demand_index": 85,
+      "salary_band_inr": {"min": 1000000, "max": 4000000},
+      "growth_trend": "up",
+      "job_openings_estimate": 15000
+    },
+    "skill_nlp": {
+      "demand_index": 80,
+      "salary_band_inr": {"min": 1000000, "max": 4000000},
+      "growth_trend": "up",
+      "job_openings_estimate": 12000
+    },
+    "skill_tensorflow": {
+      "demand_index": 78,
+      "salary_band_inr": {"min": 900000, "max": 3500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 11000
+    },
+    "skill_dsa": {
+      "demand_index": 88,
+      "salary_band_inr": {"min": 400000, "max": 2500000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 35000
+    },
+    "skill_system_design": {
+      "demand_index": 82,
+      "salary_band_inr": {"min": 800000, "max": 3500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 18000
+    },
+    "skill_testing": {
+      "demand_index": 75,
+      "salary_band_inr": {"min": 400000, "max": 2000000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 16000
+    }
+  },
+  "roles": {
+    "role_fullstack": {
+      "demand_index": 94,
+      "salary_band_inr": {"min": 600000, "max": 3000000},
+      "growth_trend": "up",
+      "job_openings_estimate": 45000
+    },
+    "role_data_scientist": {
+      "demand_index": 90,
+      "salary_band_inr": {"min": 800000, "max": 3500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 28000
+    },
+    "role_frontend": {
+      "demand_index": 85,
+      "salary_band_inr": {"min": 500000, "max": 2500000},
+      "growth_trend": "stable",
+      "job_openings_estimate": 32000
+    },
+    "role_backend": {
+      "demand_index": 88,
+      "salary_band_inr": {"min": 600000, "max": 2800000},
+      "growth_trend": "up",
+      "job_openings_estimate": 35000
+    },
+    "role_devops": {
+      "demand_index": 92,
+      "salary_band_inr": {"min": 800000, "max": 3500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 22000
+    },
+    "role_ml_engineer": {
+      "demand_index": 95,
+      "salary_band_inr": {"min": 1000000, "max": 4500000},
+      "growth_trend": "up",
+      "job_openings_estimate": 18000
+    }
+  }
+}

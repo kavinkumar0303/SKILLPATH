@@ -1,0 +1,109 @@
+[
+  {
+    "id": "role_fullstack",
+    "name": "Full Stack Developer",
+    "description": "Builds both client-side and server-side software, handling the entire web application stack from database to UI.",
+    "required_skills": [
+      {"skill_id": "skill_html", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_css", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_javascript", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_react", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_nodejs", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_expressjs", "weight": 4, "priority": "Medium"},
+      {"skill_id": "skill_sql", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_rest_apis", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_git", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_docker", "weight": 2, "priority": "Low"},
+      {"skill_id": "skill_testing", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_typescript", "weight": 3, "priority": "Medium"}
+    ]
+  },
+  {
+    "id": "role_data_scientist",
+    "name": "Data Scientist",
+    "description": "Analyzes complex data sets to find patterns, builds predictive models, and communicates insights to drive business decisions.",
+    "required_skills": [
+      {"skill_id": "skill_python", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_statistics", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_pandas", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_data_analysis", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_data_visualization", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_machine_learning", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_sql", "weight": 4, "priority": "Medium"},
+      {"skill_id": "skill_deep_learning", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_nlp", "weight": 3, "priority": "Low"},
+      {"skill_id": "skill_git", "weight": 2, "priority": "Low"}
+    ]
+  },
+  {
+    "id": "role_frontend",
+    "name": "Frontend Developer",
+    "description": "Specializes in building user interfaces and interactive web applications with modern frameworks and design principles.",
+    "required_skills": [
+      {"skill_id": "skill_html", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_css", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_javascript", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_typescript", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_react", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_responsive_design", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_web_accessibility", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_git", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_testing", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_rest_apis", "weight": 3, "priority": "Medium"}
+    ]
+  },
+  {
+    "id": "role_backend",
+    "name": "Backend Developer",
+    "description": "Designs and implements server-side logic, databases, and APIs that power web and mobile applications.",
+    "required_skills": [
+      {"skill_id": "skill_python", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_nodejs", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_sql", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_postgresql", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_rest_apis", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_authentication", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_docker", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_git", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_database_design", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_testing", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_redis", "weight": 2, "priority": "Low"},
+      {"skill_id": "skill_system_design", "weight": 3, "priority": "Medium"}
+    ]
+  },
+  {
+    "id": "role_devops",
+    "name": "DevOps Engineer",
+    "description": "Bridges development and operations, automating infrastructure, deployments, and monitoring for reliable software delivery.",
+    "required_skills": [
+      {"skill_id": "skill_linux", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_docker", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_kubernetes", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_cicd", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_aws", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_git", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_python", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_sql", "weight": 2, "priority": "Low"},
+      {"skill_id": "skill_system_design", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_testing", "weight": 2, "priority": "Low"}
+    ]
+  },
+  {
+    "id": "role_ml_engineer",
+    "name": "ML Engineer",
+    "description": "Designs, builds, and deploys machine learning models at scale, bridging data science research and production systems.",
+    "required_skills": [
+      {"skill_id": "skill_python", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_machine_learning", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_deep_learning", "weight": 5, "priority": "High"},
+      {"skill_id": "skill_tensorflow", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_statistics", "weight": 4, "priority": "High"},
+      {"skill_id": "skill_pandas", "weight": 4, "priority": "Medium"},
+      {"skill_id": "skill_data_visualization", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_docker", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_sql", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_git", "weight": 3, "priority": "Medium"},
+      {"skill_id": "skill_nlp", "weight": 4, "priority": "High"}
+    ]
+  }
+]
