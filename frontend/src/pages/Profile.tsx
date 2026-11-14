@@ -11,6 +11,7 @@ import {
 import HeroBanner from '../components/HeroBanner';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 
 export default function Profile() {
@@ -22,14 +23,12 @@ export default function Profile() {
   const [newSkillId, setNewSkillId] = useState('skill_javascript');
   const [newSkillLevel, setNewSkillLevel] = useState(50);
   const { addToast } = useToast();
+  const { updateUser } = useAuth();
 
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const [profRes] = await Promise.all([
-        client.get('/profile'),
-        client.get('/roles'),
-      ]);
+      const profRes = await client.get('/profile');
       setProfile(profRes.data);
     } catch (err) {
       console.error(err);
@@ -46,15 +45,17 @@ export default function Profile() {
     e.preventDefault();
     setSaving(true);
     try {
-      await client.put('/profile', {
+      const updatedFields = {
         name: profile.name,
         email: profile.email,
         bio: profile.bio,
-      });
+      };
+      await client.put('/profile', updatedFields);
+      updateUser(updatedFields);
       addToast({
         type: 'success',
         title: 'Profile Updated',
-        message: 'Personal details and orchestrator sync completed.',
+        message: 'Personal details and credentials saved successfully.',
       });
     } catch {
       addToast({
@@ -69,6 +70,36 @@ export default function Profile() {
 
   const handleAddSkill = async (e: React.FormEvent) => {
     e.preventDefault();
+    const skillNames: Record<string, { name: string; cat: string }> = {
+      skill_javascript: { name: 'JavaScript', cat: 'Frontend' },
+      skill_react: { name: 'React', cat: 'Frontend' },
+      skill_nodejs: { name: 'Node.js', cat: 'Backend' },
+      skill_typescript: { name: 'TypeScript', cat: 'Frontend' },
+      skill_docker: { name: 'Docker', cat: 'DevOps' },
+      skill_git: { name: 'Git', cat: 'DevOps' },
+      skill_python: { name: 'Python', cat: 'Backend' },
+      skill_sql: { name: 'SQL', cat: 'Database' },
+      skill_css: { name: 'CSS', cat: 'Frontend' },
+      skill_html: { name: 'HTML', cat: 'Frontend' },
+    };
+    const meta = skillNames[newSkillId] || { name: newSkillId.replace('skill_', '').toUpperCase(), cat: 'General' };
+
+    // Optimistically update local state immediately
+    const currentSkills = Array.isArray(profile?.skills) ? [...profile.skills] : [];
+    const idx = currentSkills.findIndex((s: any) => s.skill_id === newSkillId);
+    if (idx >= 0) {
+      currentSkills[idx] = { ...currentSkills[idx], level: Number(newSkillLevel) };
+    } else {
+      currentSkills.push({
+        skill_id: newSkillId,
+        name: meta.name,
+        category: meta.cat,
+        level: Number(newSkillLevel),
+      });
+    }
+    const updatedProfile = { ...profile, skills: currentSkills };
+    setProfile(updatedProfile);
+
     try {
       await client.post('/profile/skills', {
         skill_id: newSkillId,
@@ -77,9 +108,8 @@ export default function Profile() {
       addToast({
         type: 'success',
         title: 'Skill Added',
-        message: `Registered skill with proficiency ${newSkillLevel}%.`,
+        message: `Registered ${meta.name} with proficiency ${newSkillLevel}%.`,
       });
-      loadProfile();
     } catch {
       addToast({
         type: 'error',
@@ -90,6 +120,10 @@ export default function Profile() {
   };
 
   const handleDeleteSkill = async (skillId: string) => {
+    // Optimistically remove from local state immediately
+    const currentSkills = Array.isArray(profile?.skills) ? profile.skills.filter((s: any) => s.skill_id !== skillId) : [];
+    setProfile({ ...profile, skills: currentSkills });
+
     try {
       await client.delete(`/profile/skills/${skillId}`);
       addToast({
@@ -97,7 +131,6 @@ export default function Profile() {
         title: 'Skill Removed',
         message: 'Skill removed from active profile.',
       });
-      loadProfile();
     } catch {
       addToast({
         type: 'error',

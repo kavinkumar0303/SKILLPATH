@@ -61,14 +61,28 @@ export default function LearningPath() {
   };
 
   const handleCompleteItem = async (itemId: number) => {
+    // Optimistically toggle completion status immediately
+    if (roadmap?.phases) {
+      const updatedPhases = roadmap.phases.map((p: any) => ({
+        ...p,
+        items: p.items.map((item: any) => {
+          if (item.id === itemId || String(item.id) === String(itemId)) {
+            const nextStatus = item.status === 'completed' ? 'in_progress' : 'completed';
+            return { ...item, status: nextStatus };
+          }
+          return item;
+        }),
+      }));
+      setRoadmap({ ...roadmap, phases: updatedPhases });
+    }
+
     try {
       await client.post('/roadmap/complete', { item_id: itemId });
       addToast({
         type: 'success',
-        title: 'Module Completed',
-        message: 'Marked curriculum node completed. Readiness score updated.',
+        title: 'Curriculum Updated',
+        message: 'Module completion status toggled successfully.',
       });
-      loadData(hoursPerWeek);
     } catch {
       addToast({
         type: 'error',
@@ -215,7 +229,7 @@ export default function LearningPath() {
               <div className="flex items-center gap-2.5">
                 <Layers className="w-5 h-5 text-[#0B3B2E]" />
                 <h3 className="font-heading text-lg font-semibold text-[#10231C]">
-                  {phase.title}
+                  {phase.title || phase.name || `Phase ${phase.phase}`}
                 </h3>
               </div>
               <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white text-[#4B5E55] border border-[#E8E4D2]">
@@ -242,7 +256,7 @@ export default function LearningPath() {
                         </span>
                         <span className="text-[#E8E4D2]">•</span>
                         <span className="text-xs text-[#4B5E55]">
-                          {item.duration_hours} hrs
+                          {item.duration_hours || item.estimated_hours || 8} hrs
                         </span>
                         {item.is_revision && (
                           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F5C451]/30 text-[#B7791F] border border-[#F5C451]/60">
@@ -267,7 +281,7 @@ export default function LearningPath() {
                       </button>
 
                       <a
-                        href={item.url}
+                        href={item.url || item.resource_url || 'https://developer.mozilla.org'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn-outline h-9 text-xs"
@@ -277,10 +291,14 @@ export default function LearningPath() {
                       </a>
 
                       {isCompleted ? (
-                        <span className="h-9 px-4 rounded-full bg-[#E4F4E8] text-[#0B3B2E] text-xs font-semibold inline-flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4" />
+                        <button
+                          onClick={() => handleCompleteItem(item.id)}
+                          className="h-9 px-4 rounded-full bg-[#E4F4E8] hover:bg-[#D4EBD9] text-[#0B3B2E] text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                          title="Click to mark incomplete"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-[#1F8A4C]" />
                           <span>Done</span>
-                        </span>
+                        </button>
                       ) : (
                         <button
                           onClick={() => handleCompleteItem(item.id)}

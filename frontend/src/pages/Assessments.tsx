@@ -38,8 +38,9 @@ export default function Assessments() {
     setCurrentIdx(0);
     try {
       const res = await client.get(`/assessment/${skillId}`);
-      setQuestions(res.data.questions || []);
-      setSelectedAnswers(new Array(res.data.questions?.length || 8).fill(-1));
+      const qList = Array.isArray(res.data) ? res.data : (res.data?.questions || []);
+      setQuestions(qList);
+      setSelectedAnswers(new Array(qList.length).fill(-1));
     } catch (err) {
       console.error(err);
     } finally {

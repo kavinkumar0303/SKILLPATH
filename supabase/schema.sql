@@ -139,3 +139,4 @@ VALUES
   ('role_devops', 'DevOps Engineer', 'Automates cloud infrastructure, CI/CD pipelines, container orchestration, and monitoring.'),
   ('role_ml_engineer', 'ML Engineer', 'Productionizes machine learning models, neural architectures, and distributed training.')
 ON CONFLICT (id) DO NOTHING;
+

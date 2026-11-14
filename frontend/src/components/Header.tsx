@@ -52,7 +52,7 @@ export default function Header() {
         {/* Command Palette Trigger */}
         <button
           onClick={() => {
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
+            window.dispatchEvent(new CustomEvent('open-command-palette'));
           }}
           className="hidden sm:inline-flex items-center gap-2 h-9 px-3 rounded-full bg-white border border-[#E8E4D2] text-xs font-medium text-[#4B5E55] hover:border-[#0B3B2E] transition-colors"
           title="Search anything (Ctrl+K)"
