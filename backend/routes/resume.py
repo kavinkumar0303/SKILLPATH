@@ -376,3 +376,4 @@ def export_resume(
             "filename": f"{base_filename}.pdf",
             "resume_data": resume_dict,
         }
+

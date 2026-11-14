@@ -18,8 +18,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
 
-BASE_DIR = os.path.dirname(__file__)
-DB_PATH = os.path.join(BASE_DIR, "skillbridge.db")
+if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    DB_PATH = "/tmp/skillbridge.db"
+else:
+    BASE_DIR = os.path.dirname(__file__)
+    DB_PATH = os.path.join(BASE_DIR, "skillbridge.db")
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 Base = declarative_base()
@@ -42,6 +45,7 @@ class User(Base):
     linkedin = Column(String, nullable=True)
     github = Column(String, nullable=True)
     education = Column(Text, nullable=True)
+    projects = Column(Text, nullable=True)
     resume_data = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -225,6 +229,7 @@ def init_db():
             ("linkedin", "VARCHAR"),
             ("github", "VARCHAR"),
             ("education", "TEXT"),
+            ("projects", "TEXT"),
             ("resume_data", "TEXT"),
         ]:
             try:
@@ -258,6 +263,10 @@ def seed_demo_user(session: Session | None = None):
                 existing.github = "github.com/arjun-kumar"
                 existing.avatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
                 existing.education = '[{"degree": "B.Tech in Computer Science & Engineering", "institution": "Indian Institute of Information Technology", "period": "2023 - 2027", "score": "8.6 CGPA", "current": true}]'
+                existing.projects = '[{"id": "proj-1", "title": "Database Query Engine", "organization": "Academic Project", "period": "2026", "description": "Built relational schemas and optimized queries using SQL and Python.", "skills": ["Python", "SQL"]}]'
+                session.commit()
+            elif not existing.projects:
+                existing.projects = '[{"id": "proj-1", "title": "Database Query Engine", "organization": "Academic Project", "period": "2026", "description": "Built relational schemas and optimized queries using SQL and Python.", "skills": ["Python", "SQL"]}]'
                 session.commit()
             return existing
 
@@ -270,6 +279,7 @@ def seed_demo_user(session: Session | None = None):
             github="github.com/arjun-kumar",
             avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
             education='[{"degree": "B.Tech in Computer Science & Engineering", "institution": "Indian Institute of Information Technology", "period": "2023 - 2027", "score": "8.6 CGPA", "current": true}]',
+            projects='[{"id": "proj-1", "title": "Database Query Engine", "organization": "Academic Project", "period": "2026", "description": "Built relational schemas and optimized queries using SQL and Python.", "skills": ["Python", "SQL"]}]',
             bio="B.Tech Computer Science student passionate about full-stack development. "
                 "Currently learning web technologies and aiming to become a proficient "
                 "full-stack developer.",

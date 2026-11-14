@@ -1,8 +1,24 @@
 import axios from 'axios';
 
+// Detect API base URL:
+// 1. Explicit environment variable: VITE_API_URL (set in Vercel project settings)
+// 2. Production fallback: '/api' (relative route on Vercel)
+// 3. Local dev fallback: 'http://localhost:8000/api'
+const getBaseUrl = (): string => {
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    const trimmed = envUrl.trim();
+    return trimmed.endsWith('/api') ? trimmed : `${trimmed.replace(/\/+$/, '')}/api`;
+  }
+  if ((import.meta as any).env?.PROD) {
+    return '/api';
+  }
+  return 'http://localhost:8000/api';
+};
+
 const client = axios.create({
-  baseURL: 'http://localhost:8000/api',
-  timeout: 10000,
+  baseURL: getBaseUrl(),
+  timeout: 15000,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

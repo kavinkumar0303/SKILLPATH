@@ -1,24 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  FileText,
-  Download,
-  Copy,
   RotateCw,
   Sparkles,
   CheckCircle2,
   AlertCircle,
-  ChevronDown,
-  ChevronUp,
   Eye,
   Sliders,
   History,
   Check,
-  Briefcase,
   FileDown,
-  Layers,
   ArrowUp,
   ArrowDown,
   ExternalLink,
+  AlertTriangle,
+  Printer,
+  Copy,
 } from 'lucide-react';
 import HeroBanner from '../components/HeroBanner';
 import LoadingSkeleton from '../components/LoadingSkeleton';
@@ -28,6 +25,7 @@ import client from '../api/client';
 export default function Resume() {
   const { addToast } = useToast();
   const printRef = useRef<HTMLDivElement>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
@@ -43,8 +41,10 @@ export default function Resume() {
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [versionNameInput, setVersionNameInput] = useState('');
   const [versions, setVersions] = useState<any[]>([]);
+  const [previewScale, setPreviewScale] = useState(0.8);
+  const [isOverOnePage, setIsOverOnePage] = useState(false);
 
-  // Roles available
+  // Available career roles
   const availableRoles = [
     { id: 'role_fullstack', name: 'Full Stack Developer' },
     { id: 'role_backend', name: 'Backend Engineer' },
@@ -52,6 +52,25 @@ export default function Resume() {
     { id: 'role_data_scientist', name: 'Data Scientist' },
     { id: 'role_devops', name: 'DevOps / Cloud Engineer' },
   ];
+
+  // Dynamic A4 Sheet Scale calculation (210mm = 794px at 96dpi)
+  useEffect(() => {
+    const handleResize = () => {
+      if (previewContainerRef.current) {
+        const availableWidth = previewContainerRef.current.clientWidth - 24;
+        const scale = Math.min(1, Math.max(0.35, availableWidth / 794));
+        setPreviewScale(scale);
+      }
+      if (printRef.current) {
+        // A4 height is 1123px at 96dpi; check if content overflows 1 page
+        setIsOverOnePage(printRef.current.scrollHeight > 1130);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [resumeData, template, zoom]);
 
   // Load resume and version history on mount
   useEffect(() => {
@@ -207,8 +226,19 @@ export default function Resume() {
 
   const isSectionEnabled = (id: string) => {
     const s = resumeData?.sections?.find((x: any) => x.id === id);
-    return s ? s.enabled : true;
+    return s ? s.enabled : false;
   };
+
+  // Build clean non-empty contact line separated by " | "
+  const contactParts: string[] = [
+    resumeData?.header?.email,
+    resumeData?.header?.phone,
+    resumeData?.header?.location,
+    resumeData?.header?.linkedin,
+    resumeData?.header?.github,
+  ].filter((p): p is string => Boolean(p && typeof p === 'string' && p.trim().length > 0));
+
+  const contactLine = contactParts.join(' | ');
 
   return (
     <div className="space-y-6">
@@ -218,7 +248,7 @@ export default function Resume() {
         titlePrefix="Build your"
         highlightedWord="resume"
         titleSuffix=""
-        subtitle="Created from your profile, skills and assessments"
+        subtitle="Created strictly from your own profile, skills and assessments"
         badge="Resume Intelligence"
         metric={{
           value: `${resumeData?.ats_match?.score || 75}%`,
@@ -232,14 +262,14 @@ export default function Resume() {
 
       {/* Data Change Alert Banner */}
       {resumeData?.data_changed && (
-        <div className="card-modern p-4 bg-[#C6F36B]/20 border-[#C6F36B] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+        <div className="no-print card-modern p-4 bg-[#C6F36B]/20 border-[#C6F36B] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-[#0B3B2E] text-[#C6F36B] flex items-center justify-center shrink-0">
               <Sparkles size={16} />
             </div>
             <div>
               <span className="text-xs font-bold text-[#10231C]">Your data changed. Update your resume.</span>
-              <p className="text-[11px] text-[#4B5E55]">New skills or assessment completions were detected in your profile.</p>
+              <p className="text-[11px] text-[#4B5E55]">New profile competencies or assessment scores were detected.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -261,7 +291,7 @@ export default function Resume() {
       )}
 
       {/* Mobile Tab Switcher */}
-      <div className="lg:hidden flex gap-2 p-1.5 bg-white border border-[#E8E4D2] rounded-full">
+      <div className="no-print lg:hidden flex gap-2 p-1.5 bg-white border border-[#E8E4D2] rounded-full">
         <button
           onClick={() => setMobileTab('edit')}
           className={`flex-1 h-9 rounded-full text-xs font-bold transition-all ${
@@ -286,7 +316,7 @@ export default function Resume() {
         {/* =========================================================================
             LEFT COLUMN: EDITOR (40%)
         ========================================================================= */}
-        <div className={`lg:col-span-5 space-y-6 ${mobileTab === 'preview' ? 'hidden lg:block' : 'block'}`}>
+        <div className={`lg:col-span-5 space-y-4 ${mobileTab === 'preview' ? 'hidden lg:block' : 'block'}`}>
           
           {/* Card 1: Top Controls (Role, Template, Regenerate, Versions) */}
           <div className="card-modern space-y-4">
@@ -311,7 +341,7 @@ export default function Resume() {
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full h-11 px-3.5 rounded-xl bg-white border border-[#E8E4D2] text-xs font-semibold text-[#10231C] outline-none focus:border-[#0B3B2E]"
+                className="w-full h-10 px-3 rounded-xl bg-white border border-[#E8E4D2] text-xs font-semibold text-[#10231C] outline-none focus:border-[#0B3B2E]"
               >
                 {availableRoles.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -328,9 +358,9 @@ export default function Resume() {
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'modern', name: 'Modern', desc: 'Forest & lime accent line' },
-                  { id: 'classic', name: 'Classic', desc: 'Serif rules, high contrast' },
-                  { id: 'compact', name: 'Compact', desc: 'Dense single page fit' },
+                  { id: 'modern', name: 'Modern', desc: 'Forest title & lime line' },
+                  { id: 'classic', name: 'Classic', desc: 'Georgia serif & thin rules' },
+                  { id: 'compact', name: 'Compact', desc: '9.5pt body & 14mm margins' },
                 ].map((t) => (
                   <button
                     key={t.id}
@@ -402,7 +432,7 @@ export default function Resume() {
               />
             </div>
 
-            {/* Missing items checklist */}
+            {/* Missing items checklist with direct link to profile */}
             {resumeData?.missing_checklist && resumeData.missing_checklist.length > 0 ? (
               <div className="space-y-2 pt-1 border-t border-[#E8E4D2]">
                 <span className="text-[11px] font-semibold text-[#4B5E55]">To increase completeness:</span>
@@ -412,12 +442,12 @@ export default function Resume() {
                       <AlertCircle size={13} className="text-[#B7791F] shrink-0" />
                       <span className="truncate">{item.item}</span>
                     </div>
-                    <a
-                      href={item.link}
+                    <Link
+                      to={item.link || '/profile'}
                       className="text-[#0B3B2E] font-semibold hover:underline shrink-0 text-[11px]"
                     >
-                      Update Profile
-                    </a>
+                      Add in Profile
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -493,32 +523,32 @@ export default function Resume() {
 
             {/* Header Contacts Edit */}
             <div className="space-y-3 p-3 bg-[#FAF7E8] rounded-2xl border border-[#E8E4D2]">
-              <span className="text-xs font-bold text-[#10231C]">Contact Header (from Profile)</span>
+              <span className="text-xs font-bold text-[#10231C]">Contact Header</span>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <label className="text-[10px] text-[#4B5E55]">Phone</label>
+                  <label className="text-[10px] font-medium text-[#4B5E55]">Phone</label>
                   <input
                     type="text"
                     value={resumeData?.header?.phone || ''}
                     onChange={(e) => handleHeaderChange('phone', e.target.value)}
                     onBlur={() => saveResumeEdits()}
                     className="w-full h-8 px-2 rounded-lg bg-white border border-[#E8E4D2] text-xs outline-none"
-                    placeholder="+91 98765 43210"
+                    placeholder="Add in My Profile"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-[#4B5E55]">Location</label>
+                  <label className="text-[10px] font-medium text-[#4B5E55]">Location</label>
                   <input
                     type="text"
                     value={resumeData?.header?.location || ''}
                     onChange={(e) => handleHeaderChange('location', e.target.value)}
                     onBlur={() => saveResumeEdits()}
                     className="w-full h-8 px-2 rounded-lg bg-white border border-[#E8E4D2] text-xs outline-none"
-                    placeholder="Bangalore, India"
+                    placeholder="Add in My Profile"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-[#4B5E55]">LinkedIn</label>
+                  <label className="text-[10px] font-medium text-[#4B5E55]">LinkedIn</label>
                   <input
                     type="text"
                     value={resumeData?.header?.linkedin || ''}
@@ -529,7 +559,7 @@ export default function Resume() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-[#4B5E55]">GitHub</label>
+                  <label className="text-[10px] font-medium text-[#4B5E55]">GitHub</label>
                   <input
                     type="text"
                     value={resumeData?.header?.github || ''}
@@ -561,48 +591,72 @@ export default function Resume() {
             {/* Section Visibility Switches & Order */}
             <div className="space-y-2 pt-2">
               <span className="text-xs font-semibold text-[#10231C]">Sections Displayed</span>
-              {resumeData?.sections?.map((sec: any, idx: number) => (
-                <div
-                  key={sec.id}
-                  className="flex items-center justify-between p-2 rounded-xl bg-white border border-[#E8E4D2] text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleSectionToggle(sec.id)}
-                      className={`w-4 h-4 rounded flex items-center justify-center transition-colors ${
-                        sec.enabled ? 'bg-[#0B3B2E] text-white' : 'border border-[#E8E4D2]'
-                      }`}
-                    >
-                      {sec.enabled && <Check size={12} />}
-                    </button>
-                    <span className={`font-medium ${sec.enabled ? 'text-[#10231C]' : 'text-[#4B5E55] line-through'}`}>
-                      {sec.title}
-                    </span>
-                  </div>
+              {resumeData?.sections?.map((sec: any, idx: number) => {
+                // Check if this section has underlying data
+                const hasData =
+                  sec.id === 'summary' ? Boolean(resumeData?.summary) :
+                  sec.id === 'education' ? Boolean(resumeData?.education?.length) :
+                  sec.id === 'skills' ? Boolean(resumeData?.skills?.length) :
+                  sec.id === 'projects' ? Boolean(resumeData?.projects?.length) :
+                  sec.id === 'certifications' ? Boolean(resumeData?.certifications?.length) :
+                  sec.id === 'currently_learning' ? Boolean(resumeData?.currently_learning?.length) :
+                  false;
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={idx === 0}
-                      onClick={() => handleMoveSection(idx, 'up')}
-                      className="p-1 text-[#4B5E55] hover:text-[#10231C] disabled:opacity-30"
-                      title="Move up"
-                    >
-                      <ArrowUp size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={idx === resumeData.sections.length - 1}
-                      onClick={() => handleMoveSection(idx, 'down')}
-                      className="p-1 text-[#4B5E55] hover:text-[#10231C] disabled:opacity-30"
-                      title="Move down"
-                    >
-                      <ArrowDown size={13} />
-                    </button>
+                return (
+                  <div
+                    key={sec.id}
+                    className="p-2.5 rounded-xl bg-white border border-[#E8E4D2] text-xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSectionToggle(sec.id)}
+                          className={`w-4 h-4 rounded flex items-center justify-center transition-colors ${
+                            sec.enabled ? 'bg-[#0B3B2E] text-white' : 'border border-[#E8E4D2]'
+                          }`}
+                        >
+                          {sec.enabled && <Check size={12} />}
+                        </button>
+                        <span className={`font-medium ${sec.enabled ? 'text-[#10231C]' : 'text-[#4B5E55] line-through'}`}>
+                          {sec.title}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveSection(idx, 'up')}
+                          className="p-1 text-[#4B5E55] hover:text-[#10231C] disabled:opacity-30"
+                          title="Move up"
+                        >
+                          <ArrowUp size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === resumeData.sections.length - 1}
+                          onClick={() => handleMoveSection(idx, 'down')}
+                          className="p-1 text-[#4B5E55] hover:text-[#10231C] disabled:opacity-30"
+                          title="Move down"
+                        >
+                          <ArrowDown size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Muted prompt in editor if section has no data */}
+                    {!hasData && (
+                      <div className="text-[11px] text-[#4B5E55] pl-6 flex items-center gap-1">
+                        <span>No data recorded.</span>
+                        <Link to={sec.id === 'certifications' ? '/assessments' : '/profile'} className="font-semibold text-[#0B3B2E] hover:underline flex items-center gap-0.5">
+                          Add this in My Profile <ExternalLink size={10} />
+                        </Link>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
           </div>
@@ -612,16 +666,16 @@ export default function Resume() {
         {/* =========================================================================
             RIGHT COLUMN: LIVE A4 PREVIEW (60%)
         ========================================================================= */}
-        <div className={`lg:col-span-7 space-y-4 ${mobileTab === 'edit' ? 'hidden lg:block' : 'block'}`}>
+        <div className={`lg:col-span-7 space-y-3 sticky top-4 lg:top-6 self-start ${mobileTab === 'edit' ? 'hidden lg:block' : 'block'}`}>
           
           {/* Top Bar for Live Preview: Zoom & Export Actions */}
-          <div className="flex items-center justify-between flex-wrap gap-3 bg-white p-3 rounded-2xl border border-[#E8E4D2]">
+          <div className="no-print flex items-center justify-between flex-wrap gap-2.5 bg-white p-3 rounded-2xl border border-[#E8E4D2]">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-[#10231C] flex items-center gap-1.5">
                 <Eye size={15} className="text-[#0B3B2E]" /> A4 Live Preview
               </span>
               <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#FAF7E8] text-[#4B5E55] border border-[#E8E4D2]">
-                1 Page Standard
+                {template.toUpperCase()}
               </span>
             </div>
 
@@ -648,6 +702,17 @@ export default function Resume() {
                 </button>
               </div>
 
+              {/* Print / PDF */}
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                className="btn-lime h-8 px-3 text-[11px] font-bold gap-1.5"
+                title="Print or save as true vector PDF"
+              >
+                <Printer size={13} />
+                <span>PDF</span>
+              </button>
+
               {/* Download DOCX */}
               <button
                 type="button"
@@ -665,210 +730,284 @@ export default function Resume() {
                 type="button"
                 onClick={handleCopyPlainText}
                 className="btn-outline h-8 px-3 text-[11px] font-semibold gap-1.5"
-                title="Copy clean text for job applications"
+                title="Copy clean text"
               >
                 <Copy size={13} />
-                <span>Plain text</span>
+                <span>Text</span>
               </button>
             </div>
           </div>
 
-          {/* Scaled A4 Container */}
-          <div className="overflow-x-auto pb-4 flex justify-center bg-[#FAF7E8]/50 p-4 rounded-3xl border border-[#E8E4D2]/80">
+          {/* Over 1 Page Warning Banner */}
+          {isOverOnePage && (
+            <div className="no-print flex items-center justify-between p-3 rounded-xl bg-[#F59E5B]/15 border border-[#F59E5B] text-xs text-[#10231C]">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={15} className="text-[#B7791F] shrink-0" />
+                <span><strong>Over 1 page:</strong> Turn off a section or choose Compact to fit a single page.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTemplate('compact')}
+                className="text-[11px] font-bold text-[#0B3B2E] underline shrink-0"
+              >
+                Switch to Compact
+              </button>
+            </div>
+          )}
+
+          {/* Scaled A4 Container (794px x 1123px at 96dpi = 210mm x 297mm) */}
+          <div
+            ref={previewContainerRef}
+            className="w-full flex justify-center bg-[#FAF7E8]/50 p-3 sm:p-4 rounded-3xl border border-[#E8E4D2]/80 overflow-x-auto"
+          >
             <div
-              id="resume-print-area"
-              ref={printRef}
-              className={`bg-white text-[#10231C] shadow-2xl rounded-sm transition-all duration-200 select-text ${
-                zoom === 'fit' ? 'w-full max-w-[650px] min-h-[850px] p-8' : 'w-[210mm] min-h-[297mm] p-[18mm]'
-              }`}
               style={{
-                fontFamily: template === 'classic' ? 'Georgia, serif' : 'Plus Jakarta Sans, sans-serif',
+                width: zoom === 'fit' ? `${794 * previewScale}px` : '794px',
+                height: zoom === 'fit' ? `${1123 * previewScale}px` : 'auto',
+                position: 'relative',
+                overflow: zoom === 'fit' ? 'hidden' : 'visible',
               }}
             >
-              {/* Header */}
-              <div className="text-center pb-4 border-b border-[#E8E4D2] space-y-1">
-                <h1
-                  className="font-heading font-bold text-2xl tracking-tight text-[#0B3B2E]"
-                  style={{
-                    fontFamily: template === 'classic' ? 'Georgia, serif' : 'Bricolage Grotesque, sans-serif',
-                  }}
-                >
-                  {resumeData?.header?.name || 'Arjun Kumar'}
-                </h1>
-                
-                {/* Contact Subtitle */}
-                <div className="text-[12px] text-[#4B5E55] flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
-                  {resumeData?.header?.email && <span>{resumeData.header.email}</span>}
-                  {resumeData?.header?.phone && <span>• {resumeData.header.phone}</span>}
-                  {resumeData?.header?.location && <span>• {resumeData.header.location}</span>}
-                  {resumeData?.header?.linkedin && <span>• {resumeData.header.linkedin}</span>}
-                  {resumeData?.header?.github && <span>• {resumeData.header.github}</span>}
+              <div
+                id="resume-print-area"
+                ref={printRef}
+                className="bg-white text-[#10231C] shadow-xl rounded-xs select-text"
+                style={{
+                  width: '794px',
+                  minHeight: '1123px',
+                  padding: template === 'compact' ? '14mm' : '18mm',
+                  transform: zoom === 'fit' ? `scale(${previewScale})` : 'scale(1)',
+                  transformOrigin: 'top left',
+                  fontFamily: template === 'classic' ? 'Georgia, serif' : 'Plus Jakarta Sans, sans-serif',
+                  fontSize: template === 'compact' ? '9.5pt' : '10.5pt',
+                  lineHeight: 1.4,
+                  color: '#10231C',
+                }}
+              >
+                {/* 1. HEADER (Left-aligned, name 20pt bold, contact 9.5pt) */}
+                <div style={{ marginBottom: '12pt', textAlign: 'left' }}>
+                  <h1
+                    style={{
+                      fontSize: '20pt',
+                      fontWeight: 700,
+                      lineHeight: 1.15,
+                      color: template === 'classic' ? '#10231C' : '#0B3B2E',
+                      fontFamily: template === 'classic' ? 'Georgia, serif' : 'Bricolage Grotesque, sans-serif',
+                      margin: 0,
+                      marginBottom: '4pt',
+                    }}
+                  >
+                    {resumeData?.header?.name || 'Arjun Kumar'}
+                  </h1>
+                  
+                  {/* Contact line: wrapped cleanly, separated by " | ", empty items skipped */}
+                  {contactLine && (
+                    <div
+                      style={{
+                        fontSize: '9.5pt',
+                        lineHeight: 1.35,
+                        color: '#4B5E55',
+                      }}
+                    >
+                      {contactLine}
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Sections rendered in configured order */}
-              <div className="space-y-4 pt-3.5">
-                {resumeData?.sections?.map((sec: any) => {
-                  if (!sec.enabled) return null;
+                {/* 2. DYNAMIC SECTIONS */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {resumeData?.sections?.map((sec: any) => {
+                    if (!sec.enabled) return null;
 
-                  // Section Header renderer
-                  const renderSectionTitle = (title: string) => (
-                    <div className="mb-2">
+                    // Section Title Renderer (11pt bold uppercase, 0.06em tracking, rule below)
+                    const renderSectionTitle = (title: string) => (
                       <div
-                        className={`text-xs font-bold tracking-wider uppercase ${
-                          template === 'modern' ? 'text-[#0B3B2E]' : 'text-[#10231C]'
-                        }`}
+                        className="resume-section-title"
                         style={{
-                          fontFamily: template === 'classic' ? 'Georgia, serif' : 'Bricolage Grotesque, sans-serif',
+                          marginBottom: '6pt',
+                          marginTop: '2pt',
+                          pageBreakAfter: 'avoid',
+                          breakAfter: 'avoid',
                         }}
                       >
-                        {title}
-                      </div>
-                      {template === 'modern' && (
-                        <div className="w-8 h-[2px] bg-[#C6F36B] mt-0.5 rounded-full" />
-                      )}
-                      {template === 'classic' && (
-                        <div className="w-full h-[1px] bg-[#10231C]/30 mt-0.5" />
-                      )}
-                    </div>
-                  );
-
-                  // 1. Summary
-                  if (sec.id === 'summary' && resumeData?.summary) {
-                    return (
-                      <div key={sec.id}>
-                        {renderSectionTitle('Professional Summary')}
-                        <p className="text-[13px] leading-relaxed text-[#10231C]">
-                          {resumeData.summary}
-                        </p>
+                        <div
+                          style={{
+                            fontSize: '11pt',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.06em',
+                            color: template === 'classic' ? '#10231C' : '#0B3B2E',
+                            fontFamily: template === 'classic' ? 'Georgia, serif' : 'Bricolage Grotesque, sans-serif',
+                            marginBottom: '2pt',
+                          }}
+                        >
+                          {title}
+                        </div>
+                        {template === 'modern' ? (
+                          <div style={{ width: '100%', height: '2px', backgroundColor: '#C6F36B' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '0.5pt', backgroundColor: '#10231C' }} />
+                        )}
                       </div>
                     );
-                  }
 
-                  // 2. Education
-                  if (sec.id === 'education' && resumeData?.education?.length > 0) {
-                    return (
-                      <div key={sec.id}>
-                        {renderSectionTitle('Education')}
-                        <div className="space-y-2">
-                          {resumeData.education.map((ed: any, i: number) => (
-                            <div key={i} className="text-[13px]">
-                              <div className="flex items-center justify-between font-bold text-[#10231C]">
-                                <span>{ed.degree}</span>
-                                <span className="text-[12px] font-normal text-[#4B5E55]">{ed.period}</span>
+                    // A. Summary (built only from student's own data)
+                    if (sec.id === 'summary' && resumeData?.summary) {
+                      return (
+                        <div key={sec.id} className="resume-entry" style={{ marginBottom: '12pt', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                          {renderSectionTitle('Professional Summary')}
+                          <p style={{ margin: 0, lineHeight: 1.4, textAlign: 'left' }}>
+                            {resumeData.summary}
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    // B. Education (grid layout: degree/institution left, date right-aligned baseline)
+                    if (sec.id === 'education' && resumeData?.education?.length > 0) {
+                      return (
+                        <div key={sec.id} style={{ marginBottom: '12pt' }}>
+                          {renderSectionTitle('Education')}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6pt' }}>
+                            {resumeData.education.map((ed: any, i: number) => (
+                              <div key={i} className="resume-entry" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'baseline', gap: '8pt' }}>
+                                  <div style={{ fontWeight: 700, color: '#10231C' }}>
+                                    {ed.degree}
+                                  </div>
+                                  <div style={{ textAlign: 'right', color: '#4B5E55', fontSize: template === 'compact' ? '9pt' : '9.5pt' }}>
+                                    {ed.period}
+                                  </div>
+                                </div>
+                                {(ed.institution || ed.score) && (
+                                  <div style={{ color: '#4B5E55', fontSize: template === 'compact' ? '9pt' : '9.5pt', marginTop: '1pt' }}>
+                                    {ed.institution}{ed.score ? ` — ${ed.score}` : ''}
+                                  </div>
+                                )}
                               </div>
-                              <div className="flex items-center justify-between text-[#4B5E55] text-[12px]">
-                                <span>{ed.institution}</span>
-                                <span className="font-semibold text-[#0B3B2E]">{ed.score}</span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // C. Skills (grouped rows: 28mm column for group label, comma separated skills)
+                    if (sec.id === 'skills' && resumeData?.skills?.length > 0) {
+                      return (
+                        <div key={sec.id} className="resume-entry" style={{ marginBottom: '12pt', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                          {renderSectionTitle('Technical Competencies')}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4pt' }}>
+                            {resumeData.skills.map((cat: any, i: number) => (
+                              <div
+                                key={i}
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: template === 'compact' ? '1fr 1fr' : '28mm 1fr',
+                                  alignItems: 'baseline',
+                                  gap: '6pt',
+                                }}
+                              >
+                                <div style={{ fontWeight: 700, color: '#10231C', fontSize: template === 'compact' ? '9pt' : '10pt' }}>
+                                  {cat.category}:
+                                </div>
+                                <div style={{ color: '#10231C', lineHeight: 1.4 }}>
+                                  {cat.skills.map((s: any) => s.name).join(', ')}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  }
+                      );
+                    }
 
-                  // 3. Technical Competencies
-                  if (sec.id === 'skills' && resumeData?.skills?.length > 0) {
-                    return (
-                      <div key={sec.id}>
-                        {renderSectionTitle('Technical Competencies')}
-                        <div className="space-y-1.5 text-[13px]">
-                          {resumeData.skills.map((cat: any, i: number) => (
-                            <div key={i} className="flex flex-wrap items-baseline gap-1.5">
-                              <span className="font-bold text-[#10231C] min-w-[130px] text-[12px]">
-                                {cat.category}:
-                              </span>
-                              <span className="text-[#4B5E55]">
-                                {cat.skills.map((s: any, idx: number) => (
-                                  <React.Fragment key={idx}>
-                                    <span className={s.verified ? 'font-medium text-[#10231C]' : ''}>
-                                      {s.name}
-                                    </span>
-                                    {idx < cat.skills.length - 1 ? ', ' : ''}
-                                  </React.Fragment>
-                                ))}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  // 4. Projects
-                  if (sec.id === 'projects' && resumeData?.projects?.length > 0) {
-                    return (
-                      <div key={sec.id}>
-                        {renderSectionTitle('Selected Projects')}
-                        <div className="space-y-3">
-                          {resumeData.projects.map((proj: any, i: number) => (
-                            <div key={i} className="text-[13px] space-y-0.5">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-[#10231C]">{proj.title}</span>
-                                <span className="text-[12px] text-[#4B5E55]">{proj.period}</span>
+                    // D. Projects (only real description and technologies, hanging bullets)
+                    if (sec.id === 'projects' && resumeData?.projects?.length > 0) {
+                      return (
+                        <div key={sec.id} style={{ marginBottom: '12pt' }}>
+                          {renderSectionTitle('Selected Projects')}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8pt' }}>
+                            {resumeData.projects.map((proj: any, i: number) => (
+                              <div key={i} className="resume-entry" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'baseline', gap: '8pt' }}>
+                                  <div style={{ fontWeight: 700, color: '#10231C' }}>
+                                    {proj.title}
+                                  </div>
+                                  <div style={{ textAlign: 'right', color: '#4B5E55', fontSize: template === 'compact' ? '9pt' : '9.5pt' }}>
+                                    {proj.period}
+                                  </div>
+                                </div>
+                                {proj.organization && (
+                                  <div style={{ color: '#4B5E55', fontSize: template === 'compact' ? '9pt' : '9.5pt', marginTop: '1pt' }}>
+                                    {proj.organization}
+                                  </div>
+                                )}
+                                <ul style={{ paddingLeft: '4mm', listStyleType: 'disc', listStylePosition: 'outside', margin: '4pt 0 0 0' }}>
+                                  {proj.skills && proj.skills.length > 0 && (
+                                    <li style={{ paddingLeft: '1mm', lineHeight: 1.4, marginBottom: '2pt' }}>
+                                      Technologies: {proj.skills.join(', ')}
+                                    </li>
+                                  )}
+                                  {proj.description && (
+                                    <li style={{ paddingLeft: '1mm', lineHeight: 1.4 }}>
+                                      {proj.description}
+                                    </li>
+                                  )}
+                                </ul>
                               </div>
-                              <div className="text-[11px] font-medium text-[#0B3B2E]">
-                                Technologies: {proj.skills?.join(', ')}
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // E. Certifications & Assessments (from real assessment results only)
+                    if (sec.id === 'certifications' && resumeData?.certifications?.length > 0) {
+                      return (
+                        <div key={sec.id} style={{ marginBottom: '12pt' }}>
+                          {renderSectionTitle('Certifications & Verified Assessments')}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4pt' }}>
+                            {resumeData.certifications.map((c: any, i: number) => (
+                              <div
+                                key={i}
+                                className="resume-entry"
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: '1fr auto',
+                                  alignItems: 'baseline',
+                                  gap: '8pt',
+                                  pageBreakInside: 'avoid',
+                                  breakInside: 'avoid',
+                                }}
+                              >
+                                <div style={{ color: '#10231C' }}>
+                                  {c.title}
+                                </div>
+                                <div style={{ textAlign: 'right', color: '#0B3B2E', fontWeight: 600, fontSize: template === 'compact' ? '9pt' : '9.5pt' }}>
+                                  {c.score}
+                                </div>
                               </div>
-                              <p className="text-[12px] text-[#4B5E55] leading-relaxed">
-                                • {proj.description}
-                              </p>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  }
+                      );
+                    }
 
-                  // 5. Certifications & Assessments
-                  if (sec.id === 'certifications' && resumeData?.certifications?.length > 0) {
-                    return (
-                      <div key={sec.id}>
-                        {renderSectionTitle('Certifications & Verified Assessments')}
-                        <div className="space-y-1 text-[13px]">
-                          {resumeData.certifications.map((c: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between text-[12px]">
-                              <span className="font-medium text-[#10231C]">• {c.title}</span>
-                              <span className="text-[#4B5E55]">{c.score}</span>
-                            </div>
-                          ))}
+                    // F. Currently Learning (optional, off by default)
+                    if (sec.id === 'currently_learning' && resumeData?.currently_learning?.length > 0) {
+                      return (
+                        <div key={sec.id} className="resume-entry" style={{ marginBottom: '12pt', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                          {renderSectionTitle('Currently Learning')}
+                          <p style={{ margin: 0, lineHeight: 1.4, color: '#4B5E55' }}>
+                            Currently studying: <strong style={{ color: '#10231C' }}>{resumeData.currently_learning.join(', ')}</strong>
+                          </p>
                         </div>
-                      </div>
-                    );
-                  }
+                      );
+                    }
 
-                  // 6. Learning Achievements
-                  if (sec.id === 'achievements' && resumeData?.achievements?.length > 0) {
-                    return (
-                      <div key={sec.id}>
-                        {renderSectionTitle('Milestone Achievements')}
-                        <div className="space-y-1 text-[12px]">
-                          {resumeData.achievements.map((ach: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between text-[#4B5E55]">
-                              <span>• {ach.title}</span>
-                              <span className="font-semibold text-[#0B3B2E]">{ach.metric}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
+                    return null;
+                  })}
+                </div>
 
-                  // 7. Currently Learning
-                  if (sec.id === 'currently_learning' && resumeData?.currently_learning?.length > 0) {
-                    return (
-                      <div key={sec.id}>
-                        {renderSectionTitle('Currently Learning')}
-                        <p className="text-[12px] text-[#4B5E55]">
-                          Actively completing curriculum roadmaps in: <strong className="text-[#10231C]">{resumeData.currently_learning.join(', ')}</strong>
-                        </p>
-                      </div>
-                    );
-                  }
-
-                  return null;
-                })}
               </div>
             </div>
           </div>
@@ -879,7 +1018,7 @@ export default function Resume() {
 
       {/* Changes Modal */}
       {showChangesModal && (
-        <div className="fixed inset-0 z-50 bg-[#072A21]/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="no-print fixed inset-0 z-50 bg-[#072A21]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-[#E8E4D2] shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#E8E4D2]">
               <span className="font-heading text-base font-bold text-[#10231C]">Profile Changes Detected</span>
@@ -919,7 +1058,7 @@ export default function Resume() {
 
       {/* Save Version Modal */}
       {showVersionModal && (
-        <div className="fixed inset-0 z-50 bg-[#072A21]/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="no-print fixed inset-0 z-50 bg-[#072A21]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl border border-[#E8E4D2] shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#E8E4D2]">
               <span className="font-heading text-base font-bold text-[#10231C]">Save Resume Snapshot</span>

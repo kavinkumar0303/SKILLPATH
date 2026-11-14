@@ -88,7 +88,10 @@ class ResumeAgent:
         role_name = role_info.get("name", "Full Stack Developer")
 
         # 1. User skills & assessments
-        user_skills = db_session.query(UserSkill).filter(UserSkill.user_id == user_id).all()
+        user_skills = db_session.query(UserSkill).filter(
+            UserSkill.user_id == user_id,
+            UserSkill.level > 0
+        ).order_by(UserSkill.level.desc()).all()
         assessments = db_session.query(AssessmentResult).filter(AssessmentResult.user_id == user_id).all()
         current_fingerprint = self.compute_data_fingerprint(user, user_skills, assessments, role_id)
 
@@ -116,8 +119,9 @@ class ResumeAgent:
             if a.skill_id not in verified_map or pct > verified_map[a.skill_id]:
                 verified_map[a.skill_id] = pct
 
-        # Group skills uniquely by category
-        seen_skills = set()
+        # Group skills uniquely by category, deduplicated case-insensitively
+        seen_skill_names_lower = set()
+        seen_skill_ids = set()
         categorized_skills = {
             "Languages": [],
             "Web & Frameworks": [],
@@ -126,12 +130,15 @@ class ResumeAgent:
         }
 
         for us in user_skills:
-            if us.skill_id in seen_skills:
-                continue
-            seen_skills.add(us.skill_id)
-
             s_info = SKILL_MAP.get(us.skill_id, {})
             name = s_info.get("name", us.skill_id.replace("skill_", "").title())
+            name_lower = name.lower()
+
+            if us.skill_id in seen_skill_ids or name_lower in seen_skill_names_lower:
+                continue
+            seen_skill_ids.add(us.skill_id)
+            seen_skill_names_lower.add(name_lower)
+
             category = CATEGORY_MAP.get(us.skill_id, s_info.get("category", "Languages"))
             if category not in categorized_skills:
                 categorized_skills[category] = []
@@ -154,49 +161,44 @@ class ResumeAgent:
             if items
         ]
 
-        # 2. Education (parsed safely from profile)
+        # 2. Education (strictly from user.education JSON, never invented)
         education = []
-        if user.education:
+        if getattr(user, "education", None):
             try:
-                education = json.loads(user.education)
+                raw_edu = json.loads(user.education)
+                if isinstance(raw_edu, list):
+                    for ed in raw_edu:
+                        if isinstance(ed, dict) and (ed.get("degree") or ed.get("institution")):
+                            education.append({
+                                "degree": ed.get("degree", ""),
+                                "institution": ed.get("institution", ""),
+                                "period": ed.get("period", ""),
+                                "score": ed.get("score", ""),
+                                "current": ed.get("current", False),
+                            })
             except Exception:
-                education = [{
-                    "degree": "B.Tech in Computer Science & Engineering",
-                    "institution": "Indian Institute of Information Technology",
-                    "period": "2023 - 2027",
-                    "score": "8.6 CGPA",
-                    "current": True
-                }]
-        if not education:
-            education = [{
-                "degree": "B.Tech in Computer Science & Engineering",
-                "institution": "Indian Institute of Information Technology",
-                "period": "2023 - 2027",
-                "score": "8.6 CGPA",
-                "current": True
-            }]
+                education = []
 
-        # 3. Verified Projects (only grounded in student's verified skills)
-        projects = [
-            {
-                "id": "proj-1",
-                "title": "Enterprise Database Query & Optimization Engine",
-                "role": "Lead Developer",
-                "period": "2026",
-                "description": "Architected normalized relational schemas and optimized queries in SQL and Python. Built automated test suites covering indexed constraints.",
-                "skills": ["Python", "SQL"],
-            },
-            {
-                "id": "proj-2",
-                "title": "Semantic Web Curriculum Visualizer",
-                "role": "Frontend Developer",
-                "period": "2026",
-                "description": "Designed accessible, semantic HTML5 interfaces adhering to WCAG standards. Integrated responsive layout components for adaptive learning paths.",
-                "skills": ["HTML", "Python"],
-            }
-        ]
+        # 3. Verified Projects (strictly from user.projects JSON, never invented)
+        projects = []
+        if getattr(user, "projects", None):
+            try:
+                raw_projects = json.loads(user.projects)
+                if isinstance(raw_projects, list):
+                    for p in raw_projects:
+                        if isinstance(p, dict) and p.get("title"):
+                            projects.append({
+                                "id": p.get("id", f"proj-{len(projects)+1}"),
+                                "title": p.get("title", ""),
+                                "organization": p.get("organization", p.get("role", "")),
+                                "period": p.get("period", ""),
+                                "description": p.get("description", ""),
+                                "skills": [s for s in p.get("skills", []) if isinstance(s, str)],
+                            })
+            except Exception:
+                projects = []
 
-        # 4. Certifications
+        # 4. Certifications: ONLY from real verified assessment results (score >= 60%)
         certifications = []
         for sid, score in verified_map.items():
             if score >= 60:
@@ -205,21 +207,11 @@ class ResumeAgent:
                     "id": f"cert-{sid}",
                     "title": f"Verified Competency: {s_name}",
                     "issuer": "Skillpath Verification Authority",
-                    "issued_date": "November 2026",
-                    "score": f"{score}% (Verified)",
+                    "issued_date": "2026",
+                    "score": f"{score}%",
                 })
-        if not certifications:
-            certifications = [
-                {
-                    "id": "cert-python",
-                    "title": "Verified Competency: Python Core Architecture",
-                    "issuer": "Skillpath Verification Authority",
-                    "issued_date": "November 2026",
-                    "score": "88% (Verified)",
-                }
-            ]
 
-        # 5. Currently learning (pending roadmap items)
+        # 5. Currently learning: pending roadmap items whose skill is NOT in user's learned skills
         pending_items = db_session.query(RoadmapItem).filter(
             RoadmapItem.user_id == user_id,
             RoadmapItem.status != "completed"
@@ -228,27 +220,41 @@ class ResumeAgent:
         cl_seen = set()
         for pi in pending_items:
             s_name = SKILL_MAP.get(pi.skill_id, {}).get("name", pi.skill_id.replace("skill_", "").title())
-            if s_name not in cl_seen and s_name not in seen_skills:
-                cl_seen.add(s_name)
+            if s_name.lower() not in cl_seen and s_name.lower() not in seen_skill_names_lower:
+                cl_seen.add(s_name.lower())
                 currently_learning.append(s_name)
 
-        # 6. Objective / Summary generated without hallucination
-        learned_names = [s["name"] for cat in skills_grouped for s in cat["skills"]]
-        learned_str = ", ".join(learned_names[:4]) if learned_names else "Python, SQL, HTML"
-        summary = (
-            f"Focused technologist targeting {role_name} roles, with verified foundational competencies in {learned_str}. "
-            "Demonstrated track record of technical diagnostic assessments, algorithm design, and disciplined continuous learning."
-        )
+        # 6. Summary: built strictly from real values without adjectives or claims
+        # "<Education level> student in <branch> with skills in <top 3 skills by level>, aiming for a <target role> role."
+        top_skills = [s["name"] for cat in skills_grouped for s in cat["skills"]]
+        top_3 = top_skills[:3]
+        skills_phrase = f"with skills in {', '.join(top_3)}" if top_3 else ""
+
+        prefix = "Student"
+        if education and len(education) > 0:
+            degree_text = education[0].get("degree", "").strip()
+            if " in " in degree_text:
+                parts = degree_text.split(" in ", 1)
+                ed_level = parts[0].strip()
+                branch = parts[1].strip()
+                prefix = f"{ed_level} student in {branch}"
+            elif degree_text:
+                prefix = f"{degree_text} student"
+
+        if skills_phrase:
+            summary = f"{prefix} {skills_phrase}, aiming for a {role_name} role."
+        else:
+            summary = f"{prefix}, aiming for a {role_name} role."
 
         # 7. Section toggles & ordering
+        # Empty sections are disabled/skipped by default; currently_learning is off by default
         sections = [
-            {"id": "summary", "title": "Professional Summary", "enabled": True, "order": 1},
-            {"id": "education", "title": "Education", "enabled": True, "order": 2},
-            {"id": "skills", "title": "Technical Competencies", "enabled": True, "order": 3},
-            {"id": "projects", "title": "Selected Projects", "enabled": True, "order": 4},
-            {"id": "certifications", "title": "Certifications & Assessments", "enabled": True, "order": 5},
-            {"id": "achievements", "title": "Learning Achievements", "enabled": False, "order": 6},
-            {"id": "currently_learning", "title": "Currently Learning", "enabled": False, "order": 7},
+            {"id": "summary", "title": "Professional Summary", "enabled": bool(summary), "order": 1},
+            {"id": "education", "title": "Education", "enabled": bool(education), "order": 2},
+            {"id": "skills", "title": "Technical Competencies", "enabled": bool(skills_grouped), "order": 3},
+            {"id": "projects", "title": "Selected Projects", "enabled": bool(projects), "order": 4},
+            {"id": "certifications", "title": "Certifications & Assessments", "enabled": bool(certifications), "order": 5},
+            {"id": "currently_learning", "title": "Currently Learning", "enabled": False, "order": 6},
         ]
 
         # 8. ATS Match Analysis
@@ -275,9 +281,6 @@ class ResumeAgent:
             "skills": skills_grouped,
             "projects": projects,
             "certifications": certifications,
-            "achievements": [
-                {"title": "Phase 1: Foundations Complete", "date": "Nov 2026", "metric": "Top 15% Diagnostic Score"}
-            ],
             "currently_learning": currently_learning,
             "sections": sections,
             "ats_match": ats_match,
@@ -299,7 +302,7 @@ class ResumeAgent:
                 agent_name="ResumeAgent",
                 event_type="resume_assembled",
                 input_summary=f"role_id={role_id}, template={template}",
-                output_summary=f"Assembled ATS resume for {role_name}: {len(learned_names)} skills, {ats_match['score']}% ATS score.",
+                output_summary=f"Assembled ATS resume for {role_name}: {len(top_skills)} skills, {ats_match['score']}% ATS score.",
             )
         )
         db_session.commit()

@@ -31,6 +31,7 @@ class ProfileUpdate(BaseModel):
     linkedin: Optional[str] = None
     github: Optional[str] = None
     education: Optional[str] = None
+    projects: Optional[str] = None
 
 class SkillAdd(BaseModel):
     skill_id: str
@@ -74,6 +75,7 @@ def get_profile(
             "github": user.github or "",
             "avatar": user.avatar or "",
             "education": user.education or "[]",
+            "projects": user.projects or "[]",
             "target_role": goal.role_id if goal else "role_fullstack",
             "skills": skills
         }
@@ -108,6 +110,8 @@ def update_profile(
             user.github = data.github
         if data.education is not None:
             user.education = data.education
+        if data.projects is not None:
+            user.projects = data.projects
         session.commit()
         orchestrator.on_profile_updated(session, uid)
         return {"status": "success", "message": "Profile updated"}

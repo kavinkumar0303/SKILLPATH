@@ -180,3 +180,4 @@ def logout(response: Response):
     """Clears the session cookie and terminates authentication."""
     response.delete_cookie(key="session_token", path="/")
     return {"status": "logged_out"}
+

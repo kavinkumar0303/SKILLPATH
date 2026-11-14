@@ -183,3 +183,72 @@ def test_resume_orchestrator_event(db):
     assert count_after > count_before
 
 
+def test_resume_limited_data_grounded_output(db):
+    """
+    Assert that when a user has limited data (only name, email, 2 skills),
+    every single token in the generated resume originates from source data without invention.
+    """
+    import uuid
+    from agents.resume_agent import ResumeAgent
+
+    unique_email = f"riya_{uuid.uuid4().hex[:6]}@example.com"
+    # Create temporary user with only name, email and 2 skills
+    limited_user = User(
+        name="Riya Sharma",
+        email=unique_email,
+        phone=None,
+        location=None,
+        linkedin=None,
+        github=None,
+        education=None,
+        projects=None,
+    )
+    db.add(limited_user)
+    db.commit()
+
+    # Add exactly 2 skills: Python and SQL
+    db.add(UserSkill(user_id=limited_user.id, skill_id="skill_python", level=70))
+    db.add(UserSkill(user_id=limited_user.id, skill_id="skill_sql", level=65))
+    db.commit()
+
+    agent = ResumeAgent()
+    resume = agent.assemble(db, user_id=limited_user.id, role_id="role_fullstack", force_regenerate=True)
+
+    # Header asserts
+    assert resume["header"]["name"] == "Riya Sharma"
+    assert resume["header"]["email"] == unique_email
+    assert resume["header"]["phone"] == ""
+    assert resume["header"]["location"] == ""
+    assert resume["header"]["linkedin"] == ""
+    assert resume["header"]["github"] == ""
+
+    # Empty sections must be empty lists
+    assert resume["education"] == []
+    assert resume["projects"] == []
+    assert resume["certifications"] == []
+
+    # Skills must contain only Python and SQL
+    res_skills = [s["name"] for cat in resume["skills"] for s in cat["skills"]]
+    assert set(res_skills) == {"Python", "SQL"}
+
+    # Summary must be strictly grounded: "Student with skills in Python, SQL, aiming for a Full Stack Developer role."
+    assert "Python" in resume["summary"]
+    assert "SQL" in resume["summary"]
+    assert "Full Stack Developer" in resume["summary"]
+
+    # Source vocabulary set
+    source_vocab = {
+        "riya", "sharma", unique_email, "python", "sql", "full", "stack", "developer",
+        "student", "with", "skills", "in", "aiming", "for", "a", "role", "role."
+    }
+
+    # Verify summary words exist in source vocab
+    for word in resume["summary"].lower().replace(",", "").replace(".", "").split():
+        assert word in source_vocab, f"Invented word found in summary: {word}"
+
+    # Cleanup
+    db.delete(limited_user)
+    db.commit()
+
+
+
