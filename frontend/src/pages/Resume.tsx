@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   RotateCw,
   Sparkles,
@@ -33,7 +33,9 @@ export default function Resume() {
   const [exportingDocx, setExportingDocx] = useState(false);
   
   const [resumeData, setResumeData] = useState<any>(null);
-  const [template, setTemplate] = useState<'modern' | 'classic' | 'compact'>('modern');
+  const [searchParams] = useSearchParams();
+  const initialTemplate = (searchParams.get('template') as any) || 'modern';
+  const [template, setTemplate] = useState<'modern' | 'classic' | 'compact'>(initialTemplate);
   const [selectedRole, setSelectedRole] = useState('role_fullstack');
   const [zoom, setZoom] = useState<'fit' | '100%'>('fit');
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('edit');
@@ -85,7 +87,9 @@ export default function Resume() {
     method
       .then((res) => {
         setResumeData(res.data);
-        if (res.data?.template) setTemplate(res.data.template);
+        if (res.data?.template && !searchParams.get('template')) {
+          setTemplate(res.data.template);
+        }
       })
       .catch((err) => {
         console.error('Failed to load resume:', err);
@@ -244,21 +248,23 @@ export default function Resume() {
     <div className="space-y-6">
       
       {/* 1. Page Banner */}
-      <HeroBanner
-        titlePrefix="Build your"
-        highlightedWord="resume"
-        titleSuffix=""
-        subtitle="Created strictly from your own profile, skills and assessments"
-        badge="Resume Intelligence"
-        metric={{
-          value: `${resumeData?.ats_match?.score || 75}%`,
-          label: "ATS Match Score",
-        }}
-        action={{
-          label: "Download PDF",
-          onClick: handleDownloadPdf,
-        }}
-      />
+      <div className="no-print">
+        <HeroBanner
+          titlePrefix="Build your"
+          highlightedWord="resume"
+          titleSuffix=""
+          subtitle="Created strictly from your own profile, skills and assessments"
+          badge="Resume Intelligence"
+          metric={{
+            value: `${resumeData?.ats_match?.score || 75}%`,
+            label: "ATS Match Score",
+          }}
+          action={{
+            label: "Download PDF",
+            onClick: handleDownloadPdf,
+          }}
+        />
+      </div>
 
       {/* Data Change Alert Banner */}
       {resumeData?.data_changed && (
@@ -316,7 +322,7 @@ export default function Resume() {
         {/* =========================================================================
             LEFT COLUMN: EDITOR (40%)
         ========================================================================= */}
-        <div className={`lg:col-span-5 space-y-4 ${mobileTab === 'preview' ? 'hidden lg:block' : 'block'}`}>
+        <div className={`no-print lg:col-span-5 space-y-4 ${mobileTab === 'preview' ? 'hidden lg:block' : 'block'}`}>
           
           {/* Card 1: Top Controls (Role, Template, Regenerate, Versions) */}
           <div className="card-modern space-y-4">
@@ -762,28 +768,35 @@ export default function Resume() {
           >
             <div
               style={{
-                width: zoom === 'fit' ? `${794 * previewScale}px` : '794px',
+                display: 'flex',
+                justifyContent: 'center',
+                width: '100%',
                 height: zoom === 'fit' ? `${1123 * previewScale}px` : 'auto',
-                position: 'relative',
                 overflow: zoom === 'fit' ? 'hidden' : 'visible',
               }}
             >
               <div
-                id="resume-print-area"
-                ref={printRef}
-                className="bg-white text-[#10231C] shadow-xl rounded-xs select-text"
                 style={{
                   width: '794px',
-                  minHeight: '1123px',
-                  padding: template === 'compact' ? '14mm' : '18mm',
                   transform: zoom === 'fit' ? `scale(${previewScale})` : 'scale(1)',
-                  transformOrigin: 'top left',
-                  fontFamily: template === 'classic' ? 'Georgia, serif' : 'Plus Jakarta Sans, sans-serif',
-                  fontSize: template === 'compact' ? '9.5pt' : '10.5pt',
-                  lineHeight: 1.4,
-                  color: '#10231C',
+                  transformOrigin: 'top center',
+                  flexShrink: 0,
                 }}
               >
+                <div
+                  id="resume-print-area"
+                  ref={printRef}
+                  className="bg-white text-[#10231C] shadow-xl rounded-xs select-text"
+                  style={{
+                    width: '794px',
+                    minHeight: '1123px',
+                    padding: template === 'compact' ? '14mm' : '18mm',
+                    fontFamily: template === 'classic' ? 'Georgia, serif' : 'Plus Jakarta Sans, sans-serif',
+                    fontSize: template === 'compact' ? '9.5pt' : '10.5pt',
+                    lineHeight: 1.4,
+                    color: '#10231C',
+                  }}
+                >
                 {/* 1. HEADER (Left-aligned, name 20pt bold, contact 9.5pt) */}
                 <div style={{ marginBottom: '12pt', textAlign: 'left' }}>
                   <h1
@@ -1011,6 +1024,7 @@ export default function Resume() {
               </div>
             </div>
           </div>
+        </div>
 
         </div>
 

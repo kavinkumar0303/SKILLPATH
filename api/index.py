@@ -14,3 +14,4 @@ except Exception as e:
     print(f"[Vercel Serverless DB Init Notice]: {e}")
 
 from main import app
+

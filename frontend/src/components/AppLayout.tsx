@@ -55,7 +55,7 @@ export default function AppLayout() {
         </main>
 
         {/* Clean Corporate Footer */}
-        <footer className="mt-auto border-t border-[#E8E4D2] bg-white py-6 px-8 text-xs text-[#4B5E55]">
+        <footer className="no-print mt-auto border-t border-[#E8E4D2] bg-white py-6 px-8 text-xs text-[#4B5E55]">
           <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Logo size="sm" variant="dark" showText={true} />

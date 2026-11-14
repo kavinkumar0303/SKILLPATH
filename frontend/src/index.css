@@ -159,30 +159,43 @@
   }
 }
 
-/* Print styles for Skill Passport & Resume */
+/* Print styles for Resume & Skill Passport */
 @media print {
   @page {
     size: A4 portrait;
     margin: 0;
   }
-  .no-print, header, aside, nav, button, [role="navigation"] {
+  .no-print, header, aside, nav, button, footer, [role="navigation"] {
     display: none !important;
   }
-  body, html {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
     background: white !important;
     color: #10231C !important;
-    padding: 0 !important;
-    margin: 0 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+  div {
+    overflow: visible !important;
+  }
+  .md\:pl-\[240px\] {
+    padding-left: 0 !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
   #resume-print-area {
+    display: block !important;
     width: 210mm !important;
     min-height: 297mm !important;
     box-shadow: none !important;
     border: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     transform: none !important;
+    background: white !important;
   }
   .resume-entry {
     break-inside: avoid !important;
@@ -191,9 +204,5 @@
   .resume-section-title {
     break-after: avoid !important;
     page-break-after: avoid !important;
-  }
-  .card-modern {
-    box-shadow: none !important;
-    border: 1px solid #ccc !important;
   }
 }

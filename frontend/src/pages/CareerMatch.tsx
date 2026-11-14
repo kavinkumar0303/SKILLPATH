@@ -29,9 +29,9 @@ export default function CareerMatch() {
         client.get('/roles'),
         client.get('/match'),
       ]);
-      setRoles(rolesRes.data);
+      setRoles(Array.isArray(rolesRes.data) ? rolesRes.data : []);
       setMatchData(matchRes.data);
-      if (!roleId && matchRes.data.role_id) {
+      if (!roleId && matchRes.data?.role_id) {
         setSelectedRole(matchRes.data.role_id);
       }
     } catch (err) {
@@ -104,7 +104,7 @@ export default function CareerMatch() {
           onChange={(e) => handleRoleChange(e.target.value)}
           className="h-11 px-4 rounded-xl border border-[#E8E4D2] bg-white text-sm font-semibold text-[#10231C] outline-none focus:border-[#0B3B2E]"
         >
-          {roles.map((r) => (
+          {Array.isArray(roles) && roles.map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
             </option>

@@ -24,7 +24,7 @@ export default function Simulator() {
         client.get('/roles'),
         client.post('/simulate', { role_id: roleId }),
       ]);
-      setRoles(rolesRes.data);
+      setRoles(Array.isArray(rolesRes.data) ? rolesRes.data : []);
       setSimData(simRes.data);
     } catch (err) {
       console.error(err);
@@ -102,7 +102,7 @@ export default function Simulator() {
           onChange={(e) => handleRoleSelect(e.target.value)}
           className="h-11 px-4 rounded-xl border border-[#E8E4D2] bg-white text-sm font-semibold text-[#10231C] outline-none focus:border-[#0B3B2E]"
         >
-          {roles.map((r) => (
+          {Array.isArray(roles) && roles.map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
             </option>
