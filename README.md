@@ -1,88 +1,53 @@
 # Skillpath — Your path from skills to career
 
-Skillpath is an enterprise-grade AI-powered personalized learning platform with a multi-agent backend architecture. It connects an individual's existing technical competencies with target industry career requirements through automated diagnostics, topological learning roadmap synthesis, and adaptive remediation.
+Skillpath is a personalized learning intelligence platform that connects an individual's technical competencies with target industry career requirements through automated diagnostics, topological learning roadmap synthesis, and adaptive remediation.
+
+Skillpath runs entirely as a modern React + TypeScript application connected directly to **Supabase** (PostgreSQL, Auth, Storage) without requiring a separate backend service.
 
 ---
 
 ## ⚡ Quick Start
 
-### 1. Run the Backend API (FastAPI + SQLite)
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-*Note: SQLite database (`skillbridge.db`) auto-seeds on first startup with demo user **Arjun Kumar**.*
-
-### 2. Run the Frontend (React + Vite + TypeScript)
+### 1. Install & Run Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-### 3. Google Sign-In Setup (OAuth 2.0)
-To enable real Google Identity Services account selection:
-1. Go to **Google Cloud Console** -> **APIs & Services** -> **Credentials**.
-2. Click **Create Credentials** -> **OAuth client ID**.
-3. Select **Web application**.
-4. Under **Authorized JavaScript origins**, add: `http://localhost:5173`.
-5. Under **Authorized redirect URIs**, add: `http://localhost:5173`.
-6. Copy the **Client ID** into both environment files:
-   - `frontend/.env`: `VITE_GOOGLE_CLIENT_ID="<YOUR_CLIENT_ID>.apps.googleusercontent.com"`
-   - `backend/.env`: `GOOGLE_CLIENT_ID="<YOUR_CLIENT_ID>.apps.googleusercontent.com"`
-7. *(Optional)* If `GOOGLE_CLIENT_ID` is unset, Skillpath gracefully provides an interactive account chooser with demo profiles and the instant demo account login.
-
 Visit **[http://localhost:5173](http://localhost:5173)** in your browser.
 
 ---
 
-## 🏗️ Architecture & Multi-Agent Architecture
+## 🗄️ Supabase Setup (Database & Authentication)
 
-Skillpath is driven by seven specialized learning agent classes coordinated by a master Orchestrator:
+Skillpath connects directly to Supabase for authentication, user profiles, skill tracking, and resume storage.
 
-1. **SkillAnalyzerAgent**: Calculates multidimensional 0–100 proficiency ratings, radar telemetry, strengths, and blind spots.
-2. **CareerMatchingAgent**: Audits profile against enterprise role taxonomies using weighted multi-criteria decision models.
-3. **LearningPathAgent**: Synthesizes phased topological roadmaps respecting strict directional prerequisite dependencies.
-4. **AssessmentAgent**: Dispatches technical diagnostic question batteries, grades submissions, and isolates weak topics.
-5. **ProgressTrackerAgent**: Monitors completion velocity, streak continuity, pace milestones, and learning telemetry.
-6. **MentorAgent**: Delivers contextual pedagogical advice, explains concepts, and updates active curriculum parameters.
-7. **ResumeAgent**: Compiles ATS-compliant resumes strictly from verified learner data, diagnostic scores, and role taxonomies without hallucinating facts.
-8. **OrchestratorAgent**: Routes lifecycle events (`PROFILE_UPDATED`, `GOAL_CHANGED`, `ASSESSMENT_SUBMITTED`, `RESUME_UPLOADED`, `RESUME_REQUESTED`, `MENTOR_QUERY`).
+### 1. Create a Supabase Project
+1. Go to [supabase.com](https://supabase.com) and create a free project.
 
-### Dual Execution Mode:
-- **Live AI**: Powered by Google Gemini (`GEMINI_API_KEY` and `GEMINI_MODEL="gemini-2.0-flash"`).
-- **Deterministic Offline Mode**: Fully functional offline fallback using rule-based topological sort, prerequisite graph algorithms, and evaluation heuristics.
+### 2. Run Database Migration
+1. In your Supabase Dashboard, open **SQL Editor**.
+2. Click **New query**, paste the entire contents of [`supabase/schema.sql`](./supabase/schema.sql), and click **Run**.
+3. This creates all necessary tables (`profiles`, `user_skills`, `resumes`, `resume_versions`, `roadmaps`, `assessments`, `roles`) with Row Level Security (RLS) enabled.
 
----
-
-## 🎯 Key Features & Differentiators
-
-- **Career Readiness Score (0-100)**: Composite metric combining Role Match (40%), Assessment Mastery (30%), Curriculum Progress (20%), and Consistency (10%).
-- **Time-to-Ready Estimator**: Interactive commitment slider (2 to 30 hrs/wk) with live calendar target date projections.
-- **What-If Simulator**: Sandbox preview comparing prospective roles without committing state.
-- **Explainable AI Drawer**: "Why this?" rationale for every recommendation with confidence meters and audit trails.
-- **Agent Consensus View**: Multi-agent deliberation traces for curriculum re-sequencing.
-- **Interactive Skill Graph**: SVG prerequisite dependency graph with status-coded nodes.
-- **Resume Gap Analyzer**: Ingests resume text to extract skills and recalculate gap vectors.
-- **Spaced-Repetition Revision**: Weak concepts resurface automatically at 1, 3, and 7 day intervals.
-- **Enterprise Cohort Analytics**: Admin view with deficit heatmaps across 40 seeded learners and CSV export.
-- **Verifiable Skill Passport**: Portable certificate page (`/passport/:id`) with QR verification and print stylesheet.
-
----
-
-## 🧪 Running Automated Tests
-
-Run backend agent and adaptive remediation tests:
-```bash
-cd backend
-python3 -m pytest tests/
+### 3. Add Supabase Environment Variables
+1. In Supabase Dashboard, go to **Project Settings** -> **API**.
+2. Copy **Project URL** and **anon public key**.
+3. In `frontend/.env` (and in your Vercel project environment variables):
+```env
+VITE_SUPABASE_URL="https://your-project.supabase.co"
+VITE_SUPABASE_ANON_KEY="your-anon-public-key"
 ```
-All 7 tests validate:
-- Diagnostic skill profiling
-- Career compatibility weighting
-- Prerequisite-ordered roadmap compilation
-- Adaptive remediation on quiz underperformance (<60%)
-- Accelerated mastery on quiz success (≥85%)
-- Dynamic goal adaptation
-- State isolation during What-If simulations
 
+*(Optional: If Supabase keys are not set, Skillpath automatically operates with local persistence and preloaded demo data so the application never breaks).*
+
+---
+
+## 🚀 Vercel Deployment
+
+Deploying on Vercel is seamless since the project is a single high-performance static SPA:
+1. Connect this GitHub repository to Vercel.
+2. In Vercel Project Settings, add the environment variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. Deploy! Vercel will build `frontend/dist` and handle client-side routing automatically.

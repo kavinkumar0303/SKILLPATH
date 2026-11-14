@@ -152,3 +152,4 @@ export function getMockResponse(url: string, method: string = 'get', data?: any)
 
   return { success: true, url: cleanUrl };
 }
+
